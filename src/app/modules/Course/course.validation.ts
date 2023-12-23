@@ -11,19 +11,21 @@ const createDetailsValidationSchema = z.object({
 });
 
 const createCourseValidationSchema = z.object({
-  title: z.string().min(1).max(255),
-  instructor: z.string().min(1).max(255),
-  categoryId: z.string().uuid(),
-  price: z.number().positive(),
-  tags: z.array(createTagsValidationSchema),
-  startDate: z.string(),
-  endDate: z.string(),
-  language: z.string().min(1).max(255),
-  provider: z.string().min(1).max(255),
-  durationInWeeks: z.number().positive().int(),
-  details: createDetailsValidationSchema,
+  body: z.object({
+    title: z.string().min(1).max(255),
+    instructor: z.string().min(1).max(255),
+    categoryId: z.string(),
+    price: z.number().positive(),
+    tags: z.array(createTagsValidationSchema),
+    startDate: z.string(),
+    endDate: z.string(),
+    language: z.string().min(1).max(255),
+    provider: z.string().min(1).max(255),
+    durationInWeeks: z.number().positive().int(),
+    details: createDetailsValidationSchema,
+  }),
 });
 
-export const courseValidationSchema = {
+export const courseValidations = {
   createCourseValidationSchema,
 };
