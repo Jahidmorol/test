@@ -6,7 +6,8 @@ const createCourse = catchAsync(async (req, res) => {
   const result = await CourseServices.createCourseIntoDB(req.body);
 
   sendResponse(res, {
-    message: 'Course is created successfully',
+    statusCode: 201,
+    message: 'Course created successfully',
     data: result,
   });
 });

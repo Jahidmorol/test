@@ -21,7 +21,6 @@ const createCourseValidationSchema = z.object({
     endDate: z.string(),
     language: z.string().min(1).max(255),
     provider: z.string().min(1).max(255),
-    // durationInWeeks: z.number().positive().int(),
     details: createDetailsValidationSchema,
   }),
 });
