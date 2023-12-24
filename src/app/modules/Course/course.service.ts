@@ -25,13 +25,56 @@ const getSingleCourseWithReviewFromDB = async (id: string) => {
   return result;
 };
 
+const getBestCourseWithAverageReviewFromDB = async () => {
+  const result = await Course.aggregate([
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'courseId',
+        as: 'reviews',
+      },
+    },
+    {
+      $addFields: {
+        averageRating: { $avg: '$reviews.rating' },
+        reviewCount: { $size: '$reviews' },
+      },
+    },
+    {
+      $sort: { averageRating: -1, reviewCount: -1 },
+    },
+    {
+      $limit: 1,
+    },
+    {
+      $project: {
+        'course._id': '$_id',
+        'course.title': '$title',
+        'course.instructor': '$instructor',
+        'course.categoryId': '$categoryId',
+        'course.price': '$price',
+        'course.tags': '$tags',
+        'course.startDate': '$startDate',
+        'course.endDate': '$endDate',
+        'course.language': '$language',
+        'course.provider': '$provider',
+        'course.durationInWeeks': '$durationInWeeks',
+        'course.details': '$details',
+        averageRating: 1,
+        reviewCount: 1,
+      },
+    },
+  ]);
+
+  return result;
+};
+
 export const CourseServices = {
   createCourseIntoDB,
   getAllCoursesFromDB,
   getSingleCourseWithReviewFromDB,
+  getBestCourseWithAverageReviewFromDB,
   // getSingleCourseFromDB,
   // updateCourseIntoDB,
-  // deleteCourseFromDB,
-  // assignFacultiesWithCourseIntoDB,
-  // removeFacultiesFromCourseFromDB,
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Schema, model } from 'mongoose';
 import TCourse, { TDetails, TTags } from './course.interface';
 
@@ -54,18 +55,38 @@ const courseSchema = new Schema<TCourse>(
       type: detailsSchema,
       required: true,
     },
-  },
-  {
-    toJSON: {
-      virtuals: true,
+    durationInWeeks: {
+      type: Number,
     },
   },
+  //   {
+  //     toJSON: {
+  //       virtuals: true,
+  //     },
+  //   },
 );
 
 // Create a virtual property for durationInWeeks
-courseSchema.virtual('durationInWeeks').get(function () {
-  const start: Date = new Date(this.startDate);
-  const end: Date = new Date(this.endDate);
+// courseSchema.virtual('durationInWeeks').get(function () {
+//   const start: Date = new Date(this.startDate);
+//   const end: Date = new Date(this.endDate);
+
+//   const durationInMilliseconds: number = end.getTime() - start.getTime();
+
+//   //   Convert milliseconds to weeks and round up to the nearest integer
+//   const durationInWeeks: number = Math.ceil(
+//     durationInMilliseconds / (7 * 24 * 60 * 60 * 1000),
+//   );
+
+//   return durationInWeeks;
+// });
+
+// Use pre middleware to calculate and set durationInWeeks before saving
+courseSchema.pre('save', function (next) {
+  const course = this;
+
+  const start: Date = new Date(course.startDate);
+  const end: Date = new Date(course.endDate);
 
   const durationInMilliseconds: number = end.getTime() - start.getTime();
 
@@ -74,7 +95,9 @@ courseSchema.virtual('durationInWeeks').get(function () {
     durationInMilliseconds / (7 * 24 * 60 * 60 * 1000),
   );
 
-  return durationInWeeks;
+  course.durationInWeeks = durationInWeeks;
+
+  next();
 });
 
 export const Course = model<TCourse>('Course', courseSchema);

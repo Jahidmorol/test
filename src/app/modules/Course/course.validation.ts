@@ -22,6 +22,7 @@ const createCourseValidationSchema = z.object({
     language: z.string().min(1).max(255),
     provider: z.string().min(1).max(255),
     details: createDetailsValidationSchema,
+    durationInWeeks: z.number().int().optional(),
   }),
 });
 
