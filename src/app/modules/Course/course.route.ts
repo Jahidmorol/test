@@ -11,6 +11,8 @@ router.post(
 );
 
 router.get('/', CourseControllers.getAllCourses);
+router.get('/:courseId/reviews', CourseControllers.getSingleCourseWithReview);
+
 // router.get('/:id', CourseControllers.getSingleCourse);
 
 // router.patch(
