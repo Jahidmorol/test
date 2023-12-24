@@ -14,14 +14,10 @@ router.get('/', CourseControllers.getAllCourses);
 router.get('/:courseId/reviews', CourseControllers.getSingleCourseWithReview);
 router.get('/best', CourseControllers.getBestCourseWithAverageReview);
 
-// router.get('/:id', CourseControllers.getSingleCourse);
-
-// router.patch(
-//   '/:id',
-//   validateRequest(CourseValidations.updateCourseValidationSchema),
-//   CourseControllers.updateCourse,
-// );
-
-// router.delete('/:id', CourseControllers.deleteCourse);
+router.put(
+  '/:courseId',
+  validateRequest(courseValidations.updateCourseValidationSchema),
+  CourseControllers.updateCourse,
+);
 
 export const CourseRoutes = router;

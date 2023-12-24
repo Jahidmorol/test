@@ -82,7 +82,7 @@ const courseSchema = new Schema<TCourse>(
 // });
 
 // Use pre middleware to calculate and set durationInWeeks before saving
-courseSchema.pre('save', function (next) {
+courseSchema.pre('save', async function (next) {
   const course = this;
 
   const start: Date = new Date(course.startDate);

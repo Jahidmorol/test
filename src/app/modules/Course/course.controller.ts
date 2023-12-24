@@ -45,11 +45,21 @@ const getBestCourseWithAverageReview = catchAsync(async (req, res) => {
   });
 });
 
+const updateCourse = catchAsync(async (req, res) => {
+  const { courseId } = req.params;
+  const result = await CourseServices.updateCourseIntoDB(courseId, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: 'Course is updated successfully',
+    data: result,
+  });
+});
+
 export const CourseControllers = {
   createCourse,
   getAllCourses,
   getSingleCourseWithReview,
   getBestCourseWithAverageReview,
-  // getSingleCourse,
-  // updateCourse,
+  updateCourse,
 };
