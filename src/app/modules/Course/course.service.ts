@@ -1,18 +1,106 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import mongoose from 'mongoose';
 import { Review } from '../Review/review.model';
 import TCourse from './course.interface';
 import { Course } from './course.model';
-import httpStatus from 'http-status';
 
 const createCourseIntoDB = async (payload: TCourse) => {
   const result = await Course.create(payload);
   return result;
 };
 
-const getAllCoursesFromDB = async () => {
-  const result = await Course.find();
-  return result;
+const getAllCoursesFromDB = async (queryField: Record<string, unknown>) => {
+  try {
+    const {
+      page = 1,
+      limit = 0,
+      sortBy,
+      sortOrder = 'asc',
+      minPrice,
+      maxPrice,
+      tags,
+      startDate,
+      endDate,
+      language,
+      provider,
+      durationInWeeks,
+      level,
+    } = queryField;
+
+    // Empty query object
+    const query: any = {};
+
+    // Pagination
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    // minPrice & maxPrice filtering
+    if (minPrice && maxPrice) {
+      query.price = {
+        $gte: parseFloat(minPrice as string),
+        $lte: parseFloat(maxPrice as string),
+      };
+    }
+
+    // tags arrayOfObject filtering
+    if (tags) {
+      query.tags = {
+        $elemMatch: {
+          name: tags,
+          isDeleted: false,
+        },
+      };
+    }
+
+    // startDate & endDate filtering
+    if (startDate && endDate) {
+      query.startDate = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    if (language) {
+      query.language = language;
+    }
+
+    if (provider) {
+      query.provider = provider;
+    }
+
+    if (durationInWeeks) {
+      query.durationInWeeks = durationInWeeks;
+    }
+
+    if (level) {
+      query[`details.level`] = level;
+    }
+
+    // Build the sort option
+    const sortOption: any = {};
+    if (
+      sortBy &&
+      [
+        'title',
+        'price',
+        'startDate',
+        'endDate',
+        'language',
+        'durationInWeeks',
+      ].includes(sortBy as string)
+    ) {
+      sortOption[sortBy as string] = sortOrder === 'asc' ? 1 : -1;
+    }
+
+    const result = await Course.find(query)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(parseInt(limit as string, 10));
+
+    return result;
+  } catch (error: any) {
+    throw new Error(error);
+  }
 };
 
 const getSingleCourseWithReviewFromDB = async (id: string) => {
