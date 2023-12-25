@@ -14,7 +14,7 @@ const createCourseValidationSchema = z.object({
   body: z.object({
     title: z.string().min(1).max(255),
     instructor: z.string().min(1).max(255),
-    categoryId: z.string(),
+    categoryId: z.string().ulid(),
     price: z.number().positive(),
     tags: z.array(createTagsValidationSchema),
     startDate: z.string(),
