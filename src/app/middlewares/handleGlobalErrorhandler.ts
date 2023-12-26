@@ -3,6 +3,7 @@ import handleZodError from '../errors/handleZodError';
 import { ErrorRequestHandler } from 'express';
 import handleCastError from '../errors/handleCastError';
 import handleValidationError from '../errors/handleValidationError';
+import handleDuplicateError from '../errors/handleDuplicateKeyError';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
@@ -25,6 +26,11 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     statusCode = incomingError?.statusCode;
     message = incomingError?.message;
     errorMessage = incomingError?.errorMessage;
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleDuplicateError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorMessage = simplifiedError?.errorMessage;
   }
 
   return res.status(statusCode).json({
