@@ -8,19 +8,229 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CourseServices = void 0;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+const mongoose_1 = __importDefault(require("mongoose"));
+const review_model_1 = require("../Review/review.model");
 const course_model_1 = require("./course.model");
 const createCourseIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield course_model_1.Course.create(payload);
     return result;
 });
+const getAllCoursesFromDB = (queryField) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { page = 1, limit = 0, sortBy, sortOrder = 'asc', minPrice, maxPrice, tags, startDate, endDate, language, provider, durationInWeeks, level, } = queryField;
+        // Empty query object
+        const query = {};
+        // Pagination
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        // minPrice & maxPrice filtering
+        if (minPrice && maxPrice) {
+            query.price = {
+                $gte: parseFloat(minPrice),
+                $lte: parseFloat(maxPrice),
+            };
+        }
+        // tags arrayOfObject filtering
+        if (tags) {
+            query.tags = {
+                $elemMatch: {
+                    name: tags,
+                    isDeleted: false,
+                },
+            };
+        }
+        // startDate & endDate filtering
+        if (startDate && endDate) {
+            query.startDate = {
+                $gte: startDate,
+                $lte: endDate,
+            };
+        }
+        if (language) {
+            query.language = language;
+        }
+        if (provider) {
+            query.provider = provider;
+        }
+        if (durationInWeeks) {
+            query.durationInWeeks = durationInWeeks;
+        }
+        if (level) {
+            query[`details.level`] = level;
+        }
+        // Build the sort option
+        const sortOption = {};
+        if (sortBy &&
+            [
+                'title',
+                'price',
+                'startDate',
+                'endDate',
+                'language',
+                'durationInWeeks',
+            ].includes(sortBy)) {
+            sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
+        }
+        const result = yield course_model_1.Course.find(query)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(parseInt(limit, 10));
+        return result;
+    }
+    catch (error) {
+        throw new Error(error);
+    }
+});
+const getSingleCourseWithReviewFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const singleCourse = yield course_model_1.Course.findById(id);
+    const singleCourseReviews = yield review_model_1.Review.find({ courseId: id });
+    const result = {
+        course: Object.assign({}, singleCourse === null || singleCourse === void 0 ? void 0 : singleCourse.toObject()),
+        reviews: singleCourseReviews,
+    };
+    return result;
+});
+const getBestCourseWithAverageReviewFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield course_model_1.Course.aggregate([
+        {
+            $lookup: {
+                from: 'reviews',
+                localField: '_id',
+                foreignField: 'courseId',
+                as: 'reviews',
+            },
+        },
+        {
+            $addFields: {
+                averageRating: { $avg: '$reviews.rating' },
+                reviewCount: { $size: '$reviews' },
+            },
+        },
+        {
+            $sort: { averageRating: -1, reviewCount: -1 },
+        },
+        {
+            $limit: 1,
+        },
+        {
+            $project: {
+                'course._id': '$_id',
+                'course.title': '$title',
+                'course.instructor': '$instructor',
+                'course.categoryId': '$categoryId',
+                'course.price': '$price',
+                'course.tags': '$tags',
+                'course.startDate': '$startDate',
+                'course.endDate': '$endDate',
+                'course.language': '$language',
+                'course.provider': '$provider',
+                'course.durationInWeeks': '$durationInWeeks',
+                'course.details': '$details',
+                averageRating: 1,
+                reviewCount: 1,
+            },
+        },
+    ]);
+    return result[0];
+});
+const updateCourseIntoDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const { tags, details } = payload, courseRemainingData = __rest(payload, ["tags", "details"]);
+    const session = yield mongoose_1.default.startSession();
+    try {
+        session.startTransaction();
+        const updatedBasicCourseInfo = yield course_model_1.Course.findByIdAndUpdate(id, courseRemainingData, {
+            new: true,
+            runValidators: true,
+            session,
+        });
+        if (!updatedBasicCourseInfo) {
+            throw new Error('Failed to update course!');
+        }
+        // check if there is any ---Tags--- to update
+        if (tags && tags.length > 0) {
+            // filter out the deleted tags
+            const deletedTagsFromPayload = tags
+                .filter((el) => el.name && el.isDeleted)
+                .map((el) => el.name);
+            const deletedTagsFromDb = yield course_model_1.Course.findByIdAndUpdate(id, {
+                $pull: {
+                    tags: {
+                        name: { $in: deletedTagsFromPayload },
+                    },
+                },
+            }, {
+                new: true,
+                runValidators: true,
+                session,
+            });
+            if (!deletedTagsFromDb) {
+                throw new Error('Failed to update course!');
+            }
+            // filter out the new tags
+            const newTagsFromPayload = tags.filter((el) => el.name && !el.isDeleted);
+            const newTagsFromDb = yield course_model_1.Course.findByIdAndUpdate(id, {
+                $addToSet: {
+                    tags: {
+                        $each: newTagsFromPayload,
+                    },
+                },
+            }, {
+                new: true,
+                runValidators: true,
+                session,
+            });
+            if (!newTagsFromDb) {
+                throw new Error('Failed to update course!');
+            }
+        }
+        // check if there is any ---Details--- to update
+        // empty object
+        const newDetailsFromPayload = Object.assign({}, courseRemainingData);
+        if (details && Object.keys(details).length) {
+            for (const [key, value] of Object.entries(details)) {
+                newDetailsFromPayload[`details.${key}`] = value;
+            }
+            const newDetailsFromDb = yield course_model_1.Course.findByIdAndUpdate(id, newDetailsFromPayload, {
+                new: true,
+                runValidators: true,
+                session,
+            });
+            if (!newDetailsFromDb) {
+                throw new Error('Failed to update course!');
+            }
+        }
+        yield session.commitTransaction();
+        yield session.endSession();
+        const result = yield course_model_1.Course.findById(id);
+        return result;
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        yield session.endSession();
+        throw error;
+    }
+});
 exports.CourseServices = {
     createCourseIntoDB,
-    // getAllCoursesFromDB,
-    // getSingleCourseFromDB,
-    // updateCourseIntoDB,
-    // deleteCourseFromDB,
-    // assignFacultiesWithCourseIntoDB,
-    // removeFacultiesFromCourseFromDB,
+    getAllCoursesFromDB,
+    getSingleCourseWithReviewFromDB,
+    getBestCourseWithAverageReviewFromDB,
+    updateCourseIntoDB,
 };

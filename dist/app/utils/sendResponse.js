@@ -7,6 +7,7 @@ const http_status_1 = __importDefault(require("http-status"));
 const sendResponse = (res, data) => {
     res.status(http_status_1.default.OK).json({
         success: true,
+        statusCode: data === null || data === void 0 ? void 0 : data.statusCode,
         message: data === null || data === void 0 ? void 0 : data.message,
         data: data === null || data === void 0 ? void 0 : data.data,
     });
