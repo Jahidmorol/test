@@ -19,12 +19,12 @@ To run this project locally, follow these steps:
 1. _Clone the repository:_
 
    bash
-   git clone https://github.com/Porgramming-Hero-web-course/l2b2a3-course-review-mehedihasan8.git
+   git clone https://github.com/Porgramming-Hero-web-course/l2b2a3-course-review-Jahidmorol.git
 
 2. _Navigate to the project directory:_
 
    typescript
-   cd l2b2a3-course-review-mehedihasan8
+   cd l2b2a3-course-review-Jahidmorol
 
 3. _Install dependencies:_
 
