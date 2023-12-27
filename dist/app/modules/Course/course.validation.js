@@ -38,7 +38,7 @@ const updateCourseValidationSchema = zod_1.z.object({
     body: zod_1.z.object({
         title: zod_1.z.string().min(1).max(255).optional(),
         instructor: zod_1.z.string().min(1).max(255).optional(),
-        categoryId: zod_1.z.string().uuid().optional(),
+        categoryId: zod_1.z.string().optional(),
         price: zod_1.z.number().positive().optional(),
         tags: zod_1.z.array(updateTagsValidationSchema).optional(),
         startDate: zod_1.z.string().optional(),

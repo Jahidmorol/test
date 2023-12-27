@@ -22,7 +22,4 @@ const getAllCategoryFromDB = () => __awaiter(void 0, void 0, void 0, function* (
 exports.CategoryServices = {
     createCategoryIntoDB,
     getAllCategoryFromDB,
-    // getSingleCourseFromDB,
-    // updateCourseIntoDB,
-    // deleteCourseFromDB,
 };
