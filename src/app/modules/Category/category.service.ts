@@ -14,7 +14,4 @@ const getAllCategoryFromDB = async () => {
 export const CategoryServices = {
   createCategoryIntoDB,
   getAllCategoryFromDB,
-  // getSingleCourseFromDB,
-  // updateCourseIntoDB,
-  // deleteCourseFromDB,
 };
