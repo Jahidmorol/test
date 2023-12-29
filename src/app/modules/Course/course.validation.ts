@@ -40,7 +40,7 @@ const updateDetailsValidationSchema = z.object({
 
 const updateCourseValidationSchema = z.object({
   body: z.object({
-    title: z.string().min(1).max(255).optional(),
+    title: z.string().min(2).max(255).optional(),
     instructor: z.string().min(1).max(255).optional(),
     categoryId: z.string().optional(),
     price: z.number().positive().optional(),
